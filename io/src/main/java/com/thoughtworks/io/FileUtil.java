@@ -1,7 +1,6 @@
 package com.thoughtworks.io;
 
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 
 public class FileUtil {
 
@@ -13,6 +12,34 @@ public class FileUtil {
      * 例如把a文件夹(a文件夹下有1.txt和一个空文件夹c)复制到b文件夹，复制完成以后b文件夹下也有一个1.txt和空文件夹c
      */
     public static void copyDirectory(File from, File to) throws IOException {
-
+        File[] fromDir = from.listFiles();
+        boolean isExist = true;
+        if (!to.isDirectory()) {
+            isExist = to.mkdir();
+        }
+        if (isExist && fromDir != null) {
+            File[] toDir = to.listFiles();
+            if (toDir != null) {
+                for (File i: toDir) {
+                    i.delete();
+                }
+            }
+            for (File i: fromDir) {
+                String newFile = File.separator + i.getName();
+                if (i.isFile()) {
+                    try (InputStream input = new FileInputStream(i.getPath());
+                         OutputStream output = new FileOutputStream(to.getPath() + newFile)) {
+                        byte[] buffer = new byte[1000];
+                        int len;
+                        while ((len = input.read(buffer)) != -1) {
+                            output.write(buffer, 0, len);
+                            output.flush();
+                        }
+                    }
+                } else {
+                    copyDirectory(i, new File(to.getPath() + newFile));
+                }
+            }
+        }
     }
 }
